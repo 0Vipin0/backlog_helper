@@ -1,6 +1,5 @@
-# ✨ Backlog Manager Excel ✨
+# ✨ Backlog Helper ✨
 
-[![Code Coverage](https://img.shields.io/codecov/c/github/0Vipin0/backlog_helper)](https://codecov.io/gh/0Vipin0/backlog_helper)
 [![Dart Version](https://img.shields.io/badge/Dart-%3E%3D3.0.0-blue.svg)](https://dart.dev)
 [![Style Guide: Effective Dart](https://img.shields.io/badge/style-effective_dart-40c4ff.svg)](https://dart.dev/guides/language/effective-dart)
 
@@ -38,104 +37,92 @@ Clone the repository:
 git clone https://github.com/0Vipin0/backlog_helper.git
 
 Install dependencies:
-
+```bash
 dart pub get
-
+```
 Run using dart run:
 
 ### Example (replace with your actual entry point)
-dart run bin/backlog_manager.dart <command> [options]
+```bash
+dart run bin/backlog_helper.dart <command> [options]
+```
 
-💻 Usage (Command-Line Examples)
+## 💻 Usage (Command-Line Examples)
 
 (Note: These are illustrative examples. Replace <command>, <type>, and options with your actual implementation based on how you build your command-line argument parser (e.g., using package:args).)
 
 ```bash
 # General structure (example)
-backlog_manager <command> <type> [options]
+backlog_helper <command> <type> [options]
 
 # --- Listing Items ---
 # List all tasks
-backlog_manager list tasks
+backlog_helper list tasks
 
 # List all goals
-backlog_manager list goals
+backlog_helper list goals
 
 # --- Adding Items ---
 # Add a new high-priority task
-backlog_manager add task --taskTitle "Implement user authentication" --priority high --description "Use JWT for auth"
+backlog_helper add task --taskTitle "Implement user authentication" --priority high --description "Use JWT for auth"
 
 # Add a new strategic goal
-backlog_manager add goal --goalDescription "Increase Q4 revenue by 15%" --targetCompletionDate 2024-12-31 --priority high --typeOfPlan strategic
+backlog_helper add goal --goalDescription "Increase Q4 revenue by 15%" --targetCompletionDate 2024-12-31 --priority high --typeOfPlan strategic
 
 # --- Updating Items ---
 # Update the status of a task
-backlog_manager update task --id "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --status inProgress
+backlog_helper update task --id "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" --status inProgress
 
 # Change the priority of a goal
-backlog_manager update goal --id "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy" --priority medium
+backlog_helper update goal --id "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy" --priority medium
 
 # --- Showing Item Details (Example) ---
 # Show details for a specific task
-backlog_manager show task --id "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+backlog_helper show task --id "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 
 # --- Other Potential Commands ---
-# backlog_manager delete task --id "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"
-# backlog_manager find tasks --priority high --status toDo
+# backlog_helper delete task --id "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz"
+# backlog_helper find tasks --priority high --status toDo
 ```
 
-📊 Data Model & Excel Structure
+## 📊 Data Model & Excel Structure
 
 The application stores data in an Excel file (default: backlog_data.xlsx in the execution directory). The file contains separate sheets for each item type, with specific headers.
 
 Default Filename: backlog_data.xlsx (can be overridden via ExcelService constructor)
 
-Sheets and Headers:
+### Fields:
 
-Sheet: BacklogTasks
+* BacklogTasks : ID, Task Title, Description, Priority, Estimated Effort, Status, Due Date, Tags/Categories, Dependencies, Reasoning, Resolution, CreatedAt, UpdatedAt
 
-Headers: ID, Task Title, Description, Priority, Estimated Effort, Status, Due Date, Tags/Categories, Dependencies, Reasoning, Resolution, CreatedAt, UpdatedAt
+* FutureGoals : ID, Goal Title, Target Completion Date, Priority, KPIs, Resources Required, Current Status, Motivation, First Step, Potential Challenges, Support Contacts, CreatedAt, UpdatedAt
 
-Sheet: FutureGoals
+* PlanningItems : ID, Plan Title, Type of Plan, Start Date, End Date, Dependencies, Progress, Status, Related Goal, Key Milestones, Allocated Resources, CreatedAt, UpdatedAt
 
-Headers: ID, Goal Title, Target Completion Date, Priority, KPIs, Resources Required, Current Status, Motivation, First Step, Potential Challenges, Support Contacts, CreatedAt, UpdatedAt
-
-Sheet: PlanningItems
-
-Headers: ID, Plan Title, Type of Plan, Start Date, End Date, Dependencies, Progress, Status, Related Goal, Key Milestones, Allocated Resources, CreatedAt, UpdatedAt
-
-Sheet: Obstacles
-
-Headers: ID, Obstacle Title, Likelihood of Occurrence, Potential Impact, Mitigation Strategies, Contingency Plans, Category, Status, Related Item, Assigned To, Date Identified, CreatedAt, UpdatedAt
+* Obstacles : ID, Obstacle Title, Likelihood of Occurrence, Potential Impact, Mitigation Strategies, Contingency Plans, Category, Status, Related Item, Assigned To, Date Identified, CreatedAt, UpdatedAt
 
 (These headers are defined in lib/constants/excel_constants.dart)
 
-##⚙️ Configuration
+## ⚙️ Configuration
 
 The primary configuration is the path to the Excel data file. By default, it looks for backlog_data.xlsx in the current working directory.
 
 You can specify a different path when creating the ExcelService instance if using it as a library, or potentially via a command-line argument or environment variable in your CLI application.
 
-🤝 Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please follow these steps:
 
 Fork the repository on GitHub.
 
-Create a new branch for your feature or bug fix (git checkout -b feature/my-new-feature or git checkout -b fix/issue-123).
-
-Make your changes, adhering to the Effective Dart style guide.
-
-Add tests for your changes. Ensure all tests pass (dart test).
-
-Commit your changes (git commit -m 'Add some feature').
-
-Push to your branch (git push origin feature/my-new-feature).
-
-Create a Pull Request on GitHub.
-
-Please provide a clear description of your changes in the pull request.
+* Create a new branch for your feature or bug fix (git checkout -b feature/my-new-feature or git checkout -b fix/issue-123).
+* Make your changes, adhering to the Effective Dart style guide.
+* Add tests for your changes. Ensure all tests pass (dart test).
+* Commit your changes (git commit -m 'Add some feature').
+* Push to your branch (git push origin feature/my-new-feature).
+* Create a Pull Request on GitHub.
+* Please provide a clear description of your changes in the pull request.
 
 📜 License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the BSD 3.0 License. See the LICENSE file for details.
