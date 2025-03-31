@@ -72,11 +72,11 @@ jobs:
       # --- Build Executable ---
       - name: Compile executable (Linux/macOS)
         if: runner.os != 'Windows'
-        run: dart compile exe ${{ env.EXECUTABLE_SCRIPT_PATH }} -o build/${{ env.EXECUTABLE_NAME }}
+        run: mkdir build && dart compile exe ${{ env.EXECUTABLE_SCRIPT_PATH }} -o build/${{ env.EXECUTABLE_NAME }}
 
       - name: Compile executable (Windows)
         if: runner.os == 'Windows'
-        run: dart compile exe ${{ env.EXECUTABLE_SCRIPT_PATH }} -o build/${{ env.EXECUTABLE_NAME }}.exe
+        run: mkdir build && dart compile exe ${{ env.EXECUTABLE_SCRIPT_PATH }} -o build/${{ env.EXECUTABLE_NAME }}.exe
 
       # --- Prepare Artifact Name ---
       - name: Determine OS identifier
