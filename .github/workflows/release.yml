@@ -130,6 +130,8 @@ jobs:
     name: Create GitHub Release
     needs: build # Run after all builds complete successfully
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code # Needed for tag info? Often not strictly required here
@@ -167,6 +169,8 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }} # Gets the tag name like v1.0.0
           release_name: Release ${{ github.ref_name }}
+          draft: false # Make it a draft first, you can publish manually
+          prerelease: ${{ contains(github.ref_name, '-') }} # Mark as pre-release if tag contains '-' (e.g., v1.0.0-beta)
           body: |
             Automated release of version ${{ github.ref_name }}.
 
@@ -175,8 +179,6 @@ jobs:
 
             ## Assets
             Compiled executables for Linux, macOS, and Windows.
-          # draft: true # Make it a draft first, you can publish manually
-          # prerelease: ${{ contains(github.ref_name, '-') }} # Mark as pre-release if tag contains '-' (e.g., v1.0.0-beta)
 
       # Upload each asset to the created release
       - name: Upload Release Asset (Linux)
