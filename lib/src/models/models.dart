@@ -117,7 +117,7 @@ class BacklogTask extends ExcelStorable {
   String? resolution;
 
   BacklogTask({
-    required String id,
+    required super.id,
     required this.taskTitle,
     required this.priority,
     this.description,
@@ -128,9 +128,9 @@ class BacklogTask extends ExcelStorable {
     this.dependencies,
     this.reasoning,
     this.resolution,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(id: id, createdAt: createdAt, updatedAt: updatedAt);
+    super.createdAt,
+    super.updatedAt,
+  });
 
   @override
   String get sheetName => ExcelConstants.sheetTasks;
@@ -215,7 +215,7 @@ class FutureGoal extends ExcelStorable {
   String? supportContacts;
 
   FutureGoal({
-    required String id,
+    required super.id,
     required this.goalDescription,
     required this.targetCompletionDate,
     required this.priority,
@@ -226,9 +226,9 @@ class FutureGoal extends ExcelStorable {
     this.firstStep,
     this.potentialChallenges,
     this.supportContacts,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(id: id, createdAt: createdAt, updatedAt: updatedAt);
+    super.createdAt,
+    super.updatedAt,
+  });
 
   @override
   String get sheetName => ExcelConstants.sheetGoals;
@@ -315,7 +315,7 @@ class PlanningItem extends ExcelStorable {
   String? allocatedResources;
 
   PlanningItem({
-    required String id,
+    required super.id,
     required this.planItemDescription,
     required this.typeOfPlan,
     required this.status,
@@ -326,9 +326,9 @@ class PlanningItem extends ExcelStorable {
     this.relatedGoal,
     this.keyMilestones,
     this.allocatedResources,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(id: id, createdAt: createdAt, updatedAt: updatedAt);
+    super.createdAt,
+    super.updatedAt,
+  });
 
   @override
   String get sheetName => ExcelConstants.sheetPlans;
@@ -416,7 +416,7 @@ class Obstacle extends ExcelStorable {
   String? dateIdentified; // YYYY-MM-DD
 
   Obstacle({
-    required String id,
+    required super.id,
     required this.obstacleDescription,
     this.likelihoodOfOccurrence,
     this.potentialImpact,
@@ -427,9 +427,9 @@ class Obstacle extends ExcelStorable {
     this.relatedItem,
     this.assignedTo,
     this.dateIdentified,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) : super(id: id, createdAt: createdAt, updatedAt: updatedAt);
+    super.createdAt,
+    super.updatedAt,
+  });
 
   @override
   String get sheetName => ExcelConstants.sheetObstacles;

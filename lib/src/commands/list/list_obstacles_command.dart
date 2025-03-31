@@ -8,24 +8,26 @@ class ListObstaclesCommand extends Command<void> {
   final String name = 'obstacles';
   @override
   final String description = 'Lists all obstacles.';
-   @override
+  @override
   String get invocation => '${runner?.executableName} list obstacles';
 
   final ExcelService _excelService;
 
   ListObstaclesCommand({required ExcelService excelService})
       : _excelService = excelService;
-      // Add filtering/sorting later
+  // Add filtering/sorting later
 
   @override
   Future<void> run() async {
     print('\n--- Listing Obstacles ---');
     try {
-      final obstacles = await _excelService.getAllItems<Obstacle>(Obstacle.fromRow);
+      final obstacles =
+          await _excelService.getAllItems<Obstacle>(Obstacle.fromRow);
       DisplayUtils.printTable<Obstacle>(obstacles, Obstacle.displayHeaders);
-       print('-----------------------\n');
+      print('-----------------------\n');
     } catch (e) {
-      print('❌ Error listing obstacles from Excel file "${_excelService.filePath}": $e');
+      print(
+          '❌ Error listing obstacles from Excel file "${_excelService.filePath}": $e');
     }
   }
 }

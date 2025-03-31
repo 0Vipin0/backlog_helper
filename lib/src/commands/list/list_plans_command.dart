@@ -15,17 +15,19 @@ class ListPlansCommand extends Command<void> {
 
   ListPlansCommand({required ExcelService excelService})
       : _excelService = excelService;
-        // Add filtering/sorting later
+  // Add filtering/sorting later
 
   @override
   Future<void> run() async {
     print('\n--- Listing Planning Items ---');
     try {
-      final plans = await _excelService.getAllItems<PlanningItem>(PlanningItem.fromRow);
+      final plans =
+          await _excelService.getAllItems<PlanningItem>(PlanningItem.fromRow);
       DisplayUtils.printTable<PlanningItem>(plans, PlanningItem.displayHeaders);
-       print('----------------------------\n');
+      print('----------------------------\n');
     } catch (e) {
-      print('❌ Error listing planning items from Excel file "${_excelService.filePath}": $e');
+      print(
+          '❌ Error listing planning items from Excel file "${_excelService.filePath}": $e');
     }
   }
 }

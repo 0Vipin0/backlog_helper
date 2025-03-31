@@ -8,7 +8,9 @@ import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockStdin extends Mock implements Stdin {}
+
 class MockStdout extends Mock implements Stdout {}
+
 class FakeEncoding extends Fake implements Encoding {}
 
 void main() {
@@ -25,19 +27,19 @@ void main() {
 
   // Helper to run tests with IO Overrides
   Future<T> runWithOverrides<T>(
-      FutureOr<T> Function() body, {
-        required List<String?> inputs,
-        required MockStdout mockStdout,
-      }) {
+    FutureOr<T> Function() body, {
+    required List<String?> inputs,
+    required MockStdout mockStdout,
+  }) {
     final mockStdin = MockStdin();
 
     // --- Setup for mocktail ---
     final inputIterator = inputs.iterator;
     // Now this `any(named: 'encoding')` call will work because a fallback is registered
     when(() => mockStdin.readLineSync(
-      encoding: any(named: 'encoding'),
-      retainNewlines: any(named: 'retainNewlines'),
-    )).thenAnswer((_) {
+          encoding: any(named: 'encoding'),
+          retainNewlines: any(named: 'retainNewlines'),
+        )).thenAnswer((_) {
       if (inputIterator.moveNext()) {
         return inputIterator.current;
       }
@@ -53,7 +55,7 @@ void main() {
     // --- End setup for mocktail ---
 
     return IOOverrides.runZoned(
-          () => Future<T>.value(body()),
+      () => Future<T>.value(body()),
       stdin: () => mockStdin,
       stdout: () => mockStdout,
     );
@@ -76,7 +78,7 @@ void main() {
       test('should return input when valid', () async {
         final inputs = ['valid input'];
         final result = await runWithOverrides(
-              () => InputUtils.prompt('Enter value'),
+          () => InputUtils.prompt('Enter value'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -87,7 +89,7 @@ void main() {
       test('should return null when optional and input is empty', () async {
         final inputs = [''];
         final result = await runWithOverrides(
-              () => InputUtils.prompt('Enter optional value'),
+          () => InputUtils.prompt('Enter optional value'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -95,34 +97,41 @@ void main() {
         verify(() => mockStdout.write('Enter optional value: ')).called(1);
       });
 
-      test('should return currentValue when optional, has current, and input is empty', () async {
+      test(
+          'should return currentValue when optional, has current, and input is empty',
+          () async {
         final inputs = ['']; // User presses Enter
         final result = await runWithOverrides(
-              () => InputUtils.prompt('Enter value', currentValue: 'old', isRequired: false),
+          () => InputUtils.prompt('Enter value',
+              currentValue: 'old', isRequired: false),
           inputs: inputs,
           mockStdout: mockStdout,
         );
         expect(result, equals('old'));
         // Verify the specific prompt text
-        verify(() => mockStdout.write('Enter value [Current: old] (Press Enter to keep): ')).called(1);
+        verify(() => mockStdout.write(
+            'Enter value [Current: old] (Press Enter to keep): ')).called(1);
       });
 
-      test('should return new value when optional, has current, and input is provided', () async {
+      test(
+          'should return new value when optional, has current, and input is provided',
+          () async {
         final inputs = ['new value'];
         final result = await runWithOverrides(
-              () => InputUtils.prompt('Enter value', currentValue: 'old', isRequired: false),
+          () => InputUtils.prompt('Enter value',
+              currentValue: 'old', isRequired: false),
           inputs: inputs,
           mockStdout: mockStdout,
         );
         expect(result, equals('new value'));
-        verify(() => mockStdout.write('Enter value [Current: old] (Press Enter to keep): ')).called(1);
+        verify(() => mockStdout.write(
+            'Enter value [Current: old] (Press Enter to keep): ')).called(1);
       });
-
 
       test('should re-prompt when required and input is empty first', () async {
         final inputs = ['', 'required input'];
         final result = await runWithOverrides(
-              () => InputUtils.prompt('Enter required', isRequired: true),
+          () => InputUtils.prompt('Enter required', isRequired: true),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -132,16 +141,19 @@ void main() {
         verify(() => mockStdout.write('Input is required. ')).called(1);
       });
 
-      test('should re-prompt when required, has current, and input is empty', () async {
+      test('should re-prompt when required, has current, and input is empty',
+          () async {
         // Note: For required fields, pressing Enter does NOT keep the current value
         final inputs = ['', 'new required'];
         final result = await runWithOverrides(
-              () => InputUtils.prompt('Enter required', currentValue: 'current', isRequired: true),
+          () => InputUtils.prompt('Enter required',
+              currentValue: 'current', isRequired: true),
           inputs: inputs,
           mockStdout: mockStdout,
         );
         expect(result, equals('new required'));
-        verify(() => mockStdout.write('Enter required [Current: current]: ')).called(2);
+        verify(() => mockStdout.write('Enter required [Current: current]: '))
+            .called(2);
         verify(() => mockStdout.write('Input is required. ')).called(1);
       });
 
@@ -150,10 +162,9 @@ void main() {
         // Inputs: First is invalid (len 3), second is valid (len 5)
         final inputs = ['inv', 'valid'];
         final result = await runWithOverrides(
-              () => InputUtils.prompt(
-              'Enter >3 chars',
+          () => InputUtils.prompt('Enter >3 chars',
               validator: (s) => s.length > 3 // Validator check
-          ),
+              ),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -170,7 +181,7 @@ void main() {
         // Inputs: First is invalid ('bad'), second is valid ('good')
         final inputs = ['bad', 'good'];
         final result = await runWithOverrides(
-              () => InputUtils.prompt(
+          () => InputUtils.prompt(
             'Enter good/bad',
             validator: (s) => s == 'good', // Validator check
             validationError: 'Must be "good". ',
@@ -186,7 +197,7 @@ void main() {
       test('should re-prompt with custom validation error', () async {
         final inputs = ['bad', 'good'];
         final result = await runWithOverrides(
-              () => InputUtils.prompt(
+          () => InputUtils.prompt(
             'Enter good/bad',
             validator: (s) => s == 'good',
             validationError: 'Must be "good". ',
@@ -198,12 +209,15 @@ void main() {
         verify(() => mockStdout.write('Enter good/bad: ')).called(2);
         verify(() => mockStdout.write('Must be "good". ')).called(1);
       });
-      test('should handle validator correctly when input is empty and optional', () async {
+      test('should handle validator correctly when input is empty and optional',
+          () async {
         final inputs = ['']; // Empty input for an optional field
         final result = await runWithOverrides(
-              () => InputUtils.prompt(
+          () => InputUtils.prompt(
             'Enter optional number',
-            validator: (s) => int.tryParse(s) != null, // Validator should not run on empty optional input
+            validator: (s) =>
+                int.tryParse(s) !=
+                null, // Validator should not run on empty optional input
             isRequired: false,
             validationError: 'Not a number. ',
           ),
@@ -226,7 +240,7 @@ void main() {
       test('should return valid enum input string', () async {
         final inputs = ['medium'];
         final result = await runWithOverrides(
-              () => InputUtils.promptEnum('Select Priority', sampleEnum),
+          () => InputUtils.promptEnum('Select Priority', sampleEnum),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -234,10 +248,11 @@ void main() {
         verify(() => mockStdout.write('Select Priority: ')).called(1);
       });
 
-      test('should return valid enum input string (case-insensitive)', () async {
+      test('should return valid enum input string (case-insensitive)',
+          () async {
         final inputs = ['HIGH'];
         final result = await runWithOverrides(
-              () => InputUtils.promptEnum('Select Priority', sampleEnum),
+          () => InputUtils.promptEnum('Select Priority', sampleEnum),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -245,11 +260,11 @@ void main() {
         verify(() => mockStdout.write('Select Priority: ')).called(1);
       });
 
-
       test('should return null when optional and input is empty', () async {
         final inputs = [''];
         final result = await runWithOverrides(
-              () => InputUtils.promptEnum('Select Priority', sampleEnum, isRequired: false),
+          () => InputUtils.promptEnum('Select Priority', sampleEnum,
+              isRequired: false),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -257,21 +272,26 @@ void main() {
         verify(() => mockStdout.write('Select Priority: ')).called(1);
       });
 
-      test('should return currentValue when optional, has current, and input is empty', () async {
+      test(
+          'should return currentValue when optional, has current, and input is empty',
+          () async {
         final inputs = ['']; // User presses Enter
         final result = await runWithOverrides(
-              () => InputUtils.promptEnum('Priority', sampleEnum, currentValue: 'low', isRequired: false),
+          () => InputUtils.promptEnum('Priority', sampleEnum,
+              currentValue: 'low', isRequired: false),
           inputs: inputs,
           mockStdout: mockStdout,
         );
         expect(result, equals('low'));
-        verify(() => mockStdout.write('Priority [Current: low] (Press Enter to keep): ')).called(1);
+        verify(() => mockStdout.write(
+            'Priority [Current: low] (Press Enter to keep): ')).called(1);
       });
 
       test('should re-prompt when required and input is empty first', () async {
         final inputs = ['', 'high'];
         final result = await runWithOverrides(
-              () => InputUtils.promptEnum('Select Priority', sampleEnum, isRequired: true),
+          () => InputUtils.promptEnum('Select Priority', sampleEnum,
+              isRequired: true),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -283,25 +303,34 @@ void main() {
       test('should re-prompt when input is invalid', () async {
         final inputs = ['invalid', 'medium'];
         final result = await runWithOverrides(
-              () => InputUtils.promptEnum('Select Priority', sampleEnum),
+          () => InputUtils.promptEnum('Select Priority', sampleEnum),
           inputs: inputs,
           mockStdout: mockStdout,
         );
         expect(result, equals('medium'));
         verify(() => mockStdout.write('Select Priority: ')).called(2);
-        verify(() => mockStdout.write('Invalid value. Allowed: $allowedStr. ')).called(1);
+        verify(() => mockStdout.write('Invalid value. Allowed: $allowedStr. '))
+            .called(1);
       });
 
-      test('should handle required enum with current value correctly (re-prompts on empty)', () async {
-        final inputs = ['', 'high']; // Empty should re-prompt, not keep current for required
+      test(
+          'should handle required enum with current value correctly (re-prompts on empty)',
+          () async {
+        final inputs = [
+          '',
+          'high'
+        ]; // Empty should re-prompt, not keep current for required
         final result = await runWithOverrides(
-              () => InputUtils.promptEnum('Priority', sampleEnum, currentValue: 'medium', isRequired: true),
+          () => InputUtils.promptEnum('Priority', sampleEnum,
+              currentValue: 'medium', isRequired: true),
           inputs: inputs,
           mockStdout: mockStdout,
         );
         expect(result, equals('high'));
-        verify(() => mockStdout.write('Priority [Current: medium]: ')).called(2);
-        verify(() => mockStdout.write('Input is required. ')).called(1); // Required error first
+        verify(() => mockStdout.write('Priority [Current: medium]: '))
+            .called(2);
+        verify(() => mockStdout.write('Input is required. '))
+            .called(1); // Required error first
       });
     });
 
@@ -325,10 +354,13 @@ void main() {
         expect(InputUtils.isValidDate('2023-00-01'), isFalse); // Invalid month
         expect(InputUtils.isValidDate('2023-12-32'), isFalse); // Invalid day
         expect(InputUtils.isValidDate('2023-02-29'), isFalse); // Non-leap year
-        expect(InputUtils.isValidDate('2023-11-31'), isFalse); // Nov has 30 days
+        expect(
+            InputUtils.isValidDate('2023-11-31'), isFalse); // Nov has 30 days
       });
 
-      test('should return true for null or empty (considered valid for optional)', () {
+      test(
+          'should return true for null or empty (considered valid for optional)',
+          () {
         expect(InputUtils.isValidDate(null), isTrue);
         expect(InputUtils.isValidDate(''), isTrue);
       });
@@ -343,7 +375,7 @@ void main() {
       test('should return true for "y"', () async {
         final inputs = ['y'];
         final result = await runWithOverrides(
-              () => InputUtils.confirm('Proceed?'),
+          () => InputUtils.confirm('Proceed?'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -354,7 +386,7 @@ void main() {
       test('should return true for "yes" (case-insensitive)', () async {
         final inputs = ['YeS'];
         final result = await runWithOverrides(
-              () => InputUtils.confirm('Proceed?'),
+          () => InputUtils.confirm('Proceed?'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -365,7 +397,7 @@ void main() {
       test('should return true for " y " (with whitespace)', () async {
         final inputs = [' y '];
         final result = await runWithOverrides(
-              () => InputUtils.confirm('Proceed?'),
+          () => InputUtils.confirm('Proceed?'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -376,7 +408,7 @@ void main() {
       test('should return false for "n"', () async {
         final inputs = ['n'];
         final result = await runWithOverrides(
-              () => InputUtils.confirm('Proceed?'),
+          () => InputUtils.confirm('Proceed?'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -387,7 +419,7 @@ void main() {
       test('should return false for empty input', () async {
         final inputs = [''];
         final result = await runWithOverrides(
-              () => InputUtils.confirm('Proceed?'),
+          () => InputUtils.confirm('Proceed?'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -398,7 +430,7 @@ void main() {
       test('should return false for other input', () async {
         final inputs = ['maybe'];
         final result = await runWithOverrides(
-              () => InputUtils.confirm('Proceed?'),
+          () => InputUtils.confirm('Proceed?'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -406,10 +438,11 @@ void main() {
         verify(() => mockStdout.write('Proceed? [y/N]: ')).called(1);
       });
 
-      test('should return false for null input (simulates Ctrl+D/EOF)', () async {
+      test('should return false for null input (simulates Ctrl+D/EOF)',
+          () async {
         final inputs = <String?>[null]; // Simulate EOF
         final result = await runWithOverrides(
-              () => InputUtils.confirm('Proceed?'),
+          () => InputUtils.confirm('Proceed?'),
           inputs: inputs,
           mockStdout: mockStdout,
         );
@@ -420,6 +453,5 @@ void main() {
       // Note: The `defaultValue` parameter is not actually used in the implementation
       // test('should use defaultValue if provided (though current code doesnt)', () async { ... });
     });
-
   });
 }

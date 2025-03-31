@@ -15,17 +15,19 @@ class ListGoalsCommand extends Command<void> {
 
   ListGoalsCommand({required ExcelService excelService})
       : _excelService = excelService;
-      // Add filtering/sorting later
+  // Add filtering/sorting later
 
   @override
   Future<void> run() async {
     print('\n--- Listing Future Goals ---');
     try {
-      final goals = await _excelService.getAllItems<FutureGoal>(FutureGoal.fromRow);
+      final goals =
+          await _excelService.getAllItems<FutureGoal>(FutureGoal.fromRow);
       DisplayUtils.printTable<FutureGoal>(goals, FutureGoal.displayHeaders);
-       print('--------------------------\n');
+      print('--------------------------\n');
     } catch (e) {
-      print('❌ Error listing goals from Excel file "${_excelService.filePath}": $e');
+      print(
+          '❌ Error listing goals from Excel file "${_excelService.filePath}": $e');
     }
   }
 }

@@ -9,7 +9,8 @@ class ListCommand extends Command<void> {
   @override
   final String name = 'list';
   @override
-  final String description = 'List existing items (tasks, goals, plans, obstacles) from the Excel file.';
+  final String description =
+      'List existing items (tasks, goals, plans, obstacles) from the Excel file.';
 
   final ExcelService _excelService;
 
@@ -22,7 +23,7 @@ class ListCommand extends Command<void> {
   }
 
   @override
-   void run() {
+  void run() {
     print(usage);
   }
 }

@@ -10,7 +10,7 @@ class AddPlanCommand extends Command<void> {
   final String name = 'plan';
   @override
   final String description = 'Adds a new planning item.';
-   @override
+  @override
   String get invocation => '${runner?.executableName} add plan [arguments]';
 
   final ExcelService _excelService;
@@ -20,19 +20,46 @@ class AddPlanCommand extends Command<void> {
       : _excelService = excelService {
     // --- Define Arguments ---
     // Mandatory
-    argParser.addOption('title', abbr: 't', help: '(Required) What is the plan item?', valueHelp: 'PLAN_TITLE');
-    argParser.addOption('type', help: '(Required) What type of plan is this? \nAllowed: [${PlanTypeExtension.allowedValuesString}]', valueHelp: 'TYPE', allowed: PlanTypeExtension.names, allowedHelp: Map.fromEntries(PlanType.values.map((e) => MapEntry(e.name, e.description))));
-    argParser.addOption('status', abbr:'s', help: '(Required) What is the current status/health of this plan item?', valueHelp: 'STATUS_TEXT (e.g., On Track)'); // Mandatory String
+    argParser.addOption('title',
+        abbr: 't',
+        help: '(Required) What is the plan item?',
+        valueHelp: 'PLAN_TITLE');
+    argParser.addOption('type',
+        help:
+            '(Required) What type of plan is this? \nAllowed: [${PlanTypeExtension.allowedValuesString}]',
+        valueHelp: 'TYPE',
+        allowed: PlanTypeExtension.names,
+        allowedHelp: Map.fromEntries(
+            PlanType.values.map((e) => MapEntry(e.name, e.description))));
+    argParser.addOption('status',
+        abbr: 's',
+        help: '(Required) What is the current status/health of this plan item?',
+        valueHelp: 'STATUS_TEXT (e.g., On Track)'); // Mandatory String
 
     // Optional
-    argParser.addOption('start-date', help: 'When should this plan item ideally start? (YYYY-MM-DD)', valueHelp: 'YYYY-MM-DD');
-    argParser.addOption('end-date', help: 'When is the expected completion date? (YYYY-MM-DD)', valueHelp: 'YYYY-MM-DD');
-    argParser.addOption('depends-on', help: 'Does this plan item depend on any other items? (Comma-separated Plan Titles)', valueHelp: 'plan1,plan2');
-    argParser.addOption('progress', help: 'What is the current progress? (e.g., 0%, 50%, Notes)', valueHelp: 'PROGRESS_NOTES');
-    argParser.addOption('goal', help: 'What overall goal does this contribute to? (Goal Title)', valueHelp: 'GOAL_TITLE');
-    argParser.addOption('milestones', help: 'What are the key milestones? (Related Task Titles)', valueHelp: 'task1,task2');
-    argParser.addOption('resources', help: 'What resources are allocated?', valueHelp: 'ALLOCATED_RESOURCES');
- }
+    argParser.addOption('start-date',
+        help: 'When should this plan item ideally start? (YYYY-MM-DD)',
+        valueHelp: 'YYYY-MM-DD');
+    argParser.addOption('end-date',
+        help: 'When is the expected completion date? (YYYY-MM-DD)',
+        valueHelp: 'YYYY-MM-DD');
+    argParser.addOption('depends-on',
+        help:
+            'Does this plan item depend on any other items? (Comma-separated Plan Titles)',
+        valueHelp: 'plan1,plan2');
+    argParser.addOption('progress',
+        help: 'What is the current progress? (e.g., 0%, 50%, Notes)',
+        valueHelp: 'PROGRESS_NOTES');
+    argParser.addOption('goal',
+        help: 'What overall goal does this contribute to? (Goal Title)',
+        valueHelp: 'GOAL_TITLE');
+    argParser.addOption('milestones',
+        help: 'What are the key milestones? (Related Task Titles)',
+        valueHelp: 'task1,task2');
+    argParser.addOption('resources',
+        help: 'What resources are allocated?',
+        valueHelp: 'ALLOCATED_RESOURCES');
+  }
 
   @override
   Future<void> run() async {
@@ -49,40 +76,70 @@ class AddPlanCommand extends Command<void> {
 
     // --- Interactive Mode ---
     if (interactive) {
-       print('\n--- Adding New Planning Item ---');
-       title = InputUtils.prompt('What is the plan item?', isRequired: true, currentValue: title);
-       typeStr = InputUtils.promptEnum<PlanType>('What type of plan is this? (${PlanTypeExtension.allowedValuesString})', PlanType.values, isRequired: true, currentValue: typeStr);
-       status = InputUtils.prompt('What is the current status/health? (e.g., On Track)', isRequired: true, currentValue: status);
-       startDate = InputUtils.prompt('Ideal start date? (YYYY-MM-DD) (Optional):', validator: InputUtils.isValidDate, validationError: 'Invalid date format.', currentValue: startDate);
-       endDate = InputUtils.prompt('Expected end date? (YYYY-MM-DD) (Optional):', validator: InputUtils.isValidDate, validationError: 'Invalid date format.', currentValue: endDate);
-       dependencies = InputUtils.prompt('Depends on which plans? (comma-separated titles) (Optional):', currentValue: dependencies);
-       progress = InputUtils.prompt('Current progress? (Optional):', currentValue: progress);
-       goal = InputUtils.prompt('Related overall goal title? (Optional):', currentValue: goal);
-       milestones = InputUtils.prompt('Key milestones? (Related Task Titles) (Optional):', currentValue: milestones);
-       resources = InputUtils.prompt('Allocated resources? (Optional):', currentValue: resources);
-       print('--------------------------\n');
+      print('\n--- Adding New Planning Item ---');
+      title = InputUtils.prompt('What is the plan item?',
+          isRequired: true, currentValue: title);
+      typeStr = InputUtils.promptEnum<PlanType>(
+          'What type of plan is this? (${PlanTypeExtension.allowedValuesString})',
+          PlanType.values,
+          isRequired: true,
+          currentValue: typeStr);
+      status = InputUtils.prompt(
+          'What is the current status/health? (e.g., On Track)',
+          isRequired: true,
+          currentValue: status);
+      startDate = InputUtils.prompt(
+          'Ideal start date? (YYYY-MM-DD) (Optional):',
+          validator: InputUtils.isValidDate,
+          validationError: 'Invalid date format.',
+          currentValue: startDate);
+      endDate = InputUtils.prompt('Expected end date? (YYYY-MM-DD) (Optional):',
+          validator: InputUtils.isValidDate,
+          validationError: 'Invalid date format.',
+          currentValue: endDate);
+      dependencies = InputUtils.prompt(
+          'Depends on which plans? (comma-separated titles) (Optional):',
+          currentValue: dependencies);
+      progress = InputUtils.prompt('Current progress? (Optional):',
+          currentValue: progress);
+      goal = InputUtils.prompt('Related overall goal title? (Optional):',
+          currentValue: goal);
+      milestones = InputUtils.prompt(
+          'Key milestones? (Related Task Titles) (Optional):',
+          currentValue: milestones);
+      resources = InputUtils.prompt('Allocated resources? (Optional):',
+          currentValue: resources);
+      print('--------------------------\n');
     }
 
     // --- Validation ---
-     if (title == null || title.isEmpty) {
-       throw UsageException('Plan title (--title or -t) is required.', usage);
-     }
-     if (typeStr == null || typeStr.isEmpty) {
-        throw UsageException('Type of plan (--type) is required.', usage);
+    if (title == null || title.isEmpty) {
+      throw UsageException('Plan title (--title or -t) is required.', usage);
     }
-     final type = PlanTypeExtension.tryParse(typeStr);
-     if (type == null) {
-        throw UsageException('Invalid type value: "$typeStr". Allowed: ${PlanTypeExtension.allowedValuesString}', usage);
-     }
-     if (status == null || status.isEmpty) {
-        throw UsageException('Status (--status or -s) is required.', usage);
-     }
-     if (startDate != null && startDate.isNotEmpty && !InputUtils.isValidDate(startDate)) {
-       throw UsageException('Invalid start date format: "$startDate". Use YYYY-MM-DD.', usage);
-     }
-      if (endDate != null && endDate.isNotEmpty && !InputUtils.isValidDate(endDate)) {
-       throw UsageException('Invalid end date format: "$endDate". Use YYYY-MM-DD.', usage);
-     }
+    if (typeStr == null || typeStr.isEmpty) {
+      throw UsageException('Type of plan (--type) is required.', usage);
+    }
+    final type = PlanTypeExtension.tryParse(typeStr);
+    if (type == null) {
+      throw UsageException(
+          'Invalid type value: "$typeStr". Allowed: ${PlanTypeExtension.allowedValuesString}',
+          usage);
+    }
+    if (status == null || status.isEmpty) {
+      throw UsageException('Status (--status or -s) is required.', usage);
+    }
+    if (startDate != null &&
+        startDate.isNotEmpty &&
+        !InputUtils.isValidDate(startDate)) {
+      throw UsageException(
+          'Invalid start date format: "$startDate". Use YYYY-MM-DD.', usage);
+    }
+    if (endDate != null &&
+        endDate.isNotEmpty &&
+        !InputUtils.isValidDate(endDate)) {
+      throw UsageException(
+          'Invalid end date format: "$endDate". Use YYYY-MM-DD.', usage);
+    }
 
     // --- Create and Save ---
     final newPlan = PlanningItem(
@@ -103,7 +160,8 @@ class AddPlanCommand extends Command<void> {
       final addedId = await _excelService.addItem<PlanningItem>(newPlan);
       print('✅ Planning item added successfully with ID: $addedId');
     } catch (e) {
-      print('❌ Error adding planning item to Excel file "${_excelService.filePath}": $e');
+      print(
+          '❌ Error adding planning item to Excel file "${_excelService.filePath}": $e');
     }
   }
 }

@@ -10,36 +10,71 @@ class UpdateGoalCommand extends Command<void> {
   @override
   final String description = 'Updates an existing future goal.';
   @override
-  String get invocation => '${runner?.executableName} update goal --id <GOAL_ID> [arguments]';
+  String get invocation =>
+      '${runner?.executableName} update goal --id <GOAL_ID> [arguments]';
 
   final ExcelService _excelService;
   final bool interactive;
 
-  UpdateGoalCommand({required ExcelService excelService, this.interactive = false})
+  UpdateGoalCommand(
+      {required ExcelService excelService, this.interactive = false})
       : _excelService = excelService {
     // --- Define Arguments ---
-    argParser.addOption('id', abbr: 'i', help: 'The unique ID of the goal to update (Required).', valueHelp: 'GOAL_ID');
+    argParser.addOption('id',
+        abbr: 'i',
+        help: 'The unique ID of the goal to update (Required).',
+        valueHelp: 'GOAL_ID');
 
     // Optional update fields
-    argParser.addOption('title', abbr: 't', help: 'New goal title.', valueHelp: 'GOAL_TITLE');
-    argParser.addOption('target-date', help: 'New target completion date (YYYY-MM-DD).', valueHelp: 'YYYY-MM-DD');
-    argParser.addOption('priority', abbr: 'p', help: 'New priority. Allowed: [${PriorityExtension.allowedValuesString}]', valueHelp: 'PRIORITY', allowed: PriorityExtension.names, allowedHelp: Map.fromEntries(Priority.values.map((e) => MapEntry(e.name, e.description))));
-    argParser.addOption('status', abbr: 's', help: 'New status. Allowed: [${GoalStatusExtension.allowedValuesString}]', valueHelp: 'STATUS', allowed: GoalStatusExtension.names, allowedHelp: Map.fromEntries(GoalStatus.values.map((e) => MapEntry(e.name, e.description))));
+    argParser.addOption('title',
+        abbr: 't', help: 'New goal title.', valueHelp: 'GOAL_TITLE');
+    argParser.addOption('target-date',
+        help: 'New target completion date (YYYY-MM-DD).',
+        valueHelp: 'YYYY-MM-DD');
+    argParser.addOption('priority',
+        abbr: 'p',
+        help:
+            'New priority. Allowed: [${PriorityExtension.allowedValuesString}]',
+        valueHelp: 'PRIORITY',
+        allowed: PriorityExtension.names,
+        allowedHelp: Map.fromEntries(
+            Priority.values.map((e) => MapEntry(e.name, e.description))));
+    argParser.addOption('status',
+        abbr: 's',
+        help:
+            'New status. Allowed: [${GoalStatusExtension.allowedValuesString}]',
+        valueHelp: 'STATUS',
+        allowed: GoalStatusExtension.names,
+        allowedHelp: Map.fromEntries(
+            GoalStatus.values.map((e) => MapEntry(e.name, e.description))));
     argParser.addOption('kpis', help: 'New KPIs.', valueHelp: 'KPIS');
-    argParser.addOption('resources', help: 'New resources required.', valueHelp: 'RESOURCES');
-    argParser.addOption('motivation', help: 'New motivation notes.', valueHelp: 'MOTIVATION_NOTES');
-    argParser.addOption('first-step', help: 'New first step (Related Task Title).', valueHelp: 'TASK_TITLE');
-    argParser.addOption('challenges', help: 'New potential challenges (Related Obstacle Titles).', valueHelp: 'obstacle1,obstacle2');
-    argParser.addOption('support', help: 'New support contacts.', valueHelp: 'CONTACT_INFO');
+    argParser.addOption('resources',
+        help: 'New resources required.', valueHelp: 'RESOURCES');
+    argParser.addOption('motivation',
+        help: 'New motivation notes.', valueHelp: 'MOTIVATION_NOTES');
+    argParser.addOption('first-step',
+        help: 'New first step (Related Task Title).', valueHelp: 'TASK_TITLE');
+    argParser.addOption('challenges',
+        help: 'New potential challenges (Related Obstacle Titles).',
+        valueHelp: 'obstacle1,obstacle2');
+    argParser.addOption('support',
+        help: 'New support contacts.', valueHelp: 'CONTACT_INFO');
 
-     // Clear flags for optional fields
-     argParser.addFlag('clear-status', help: 'Set status to empty.', negatable: false);
-     argParser.addFlag('clear-kpis', help: 'Set KPIs to empty.', negatable: false);
-     argParser.addFlag('clear-resources', help: 'Set resources required to empty.', negatable: false);
-     argParser.addFlag('clear-motivation', help: 'Set motivation to empty.', negatable: false);
-     argParser.addFlag('clear-first-step', help: 'Set first step to empty.', negatable: false);
-     argParser.addFlag('clear-challenges', help: 'Set potential challenges to empty.', negatable: false);
-     argParser.addFlag('clear-support', help: 'Set support contacts to empty.', negatable: false);
+    // Clear flags for optional fields
+    argParser.addFlag('clear-status',
+        help: 'Set status to empty.', negatable: false);
+    argParser.addFlag('clear-kpis',
+        help: 'Set KPIs to empty.', negatable: false);
+    argParser.addFlag('clear-resources',
+        help: 'Set resources required to empty.', negatable: false);
+    argParser.addFlag('clear-motivation',
+        help: 'Set motivation to empty.', negatable: false);
+    argParser.addFlag('clear-first-step',
+        help: 'Set first step to empty.', negatable: false);
+    argParser.addFlag('clear-challenges',
+        help: 'Set potential challenges to empty.', negatable: false);
+    argParser.addFlag('clear-support',
+        help: 'Set support contacts to empty.', negatable: false);
   }
 
   @override
@@ -47,18 +82,21 @@ class UpdateGoalCommand extends Command<void> {
     String? id = argResults?['id'];
 
     if (interactive && (id == null || id.isEmpty)) {
-      id = InputUtils.prompt('Enter the ID of the goal to update:', isRequired: true);
+      id = InputUtils.prompt('Enter the ID of the goal to update:',
+          isRequired: true);
     }
     if (id == null || id.isEmpty) {
-      throw UsageException('Goal ID (--id or -i) is required for update.', usage);
+      throw UsageException(
+          'Goal ID (--id or -i) is required for update.', usage);
     }
 
     FutureGoal? existingGoal;
     try {
-      existingGoal = await _excelService.getItemById<FutureGoal>(id, FutureGoal.fromRow);
+      existingGoal =
+          await _excelService.getItemById<FutureGoal>(id, FutureGoal.fromRow);
     } catch (e) {
-       print('❌ Error fetching goal with ID "$id": $e');
-       return;
+      print('❌ Error fetching goal with ID "$id": $e');
+      return;
     }
 
     if (existingGoal == null) {
@@ -80,49 +118,83 @@ class UpdateGoalCommand extends Command<void> {
     String? challenges = argResults?['challenges'];
     String? support = argResults?['support'];
 
-
     if (interactive) {
       print('\nEnter new values or press Enter to keep current.');
-      title = InputUtils.prompt('Goal Title', isRequired: true, currentValue: existingGoal.goalDescription);
-      targetDate = InputUtils.prompt('Target Completion Date (YYYY-MM-DD)', isRequired: true, validator: InputUtils.isValidDate, validationError: 'Invalid date format.', currentValue: existingGoal.targetCompletionDate);
-      priorityStr = InputUtils.promptEnum<Priority>('Priority (${PriorityExtension.allowedValuesString})', Priority.values, isRequired: true, currentValue: existingGoal.priority.name);
-      statusStr = InputUtils.promptEnum<GoalStatus>('Status (${GoalStatusExtension.allowedValuesString})', GoalStatus.values, currentValue: existingGoal.currentStatus?.name);
+      title = InputUtils.prompt('Goal Title',
+          isRequired: true, currentValue: existingGoal.goalDescription);
+      targetDate = InputUtils.prompt('Target Completion Date (YYYY-MM-DD)',
+          isRequired: true,
+          validator: InputUtils.isValidDate,
+          validationError: 'Invalid date format.',
+          currentValue: existingGoal.targetCompletionDate);
+      priorityStr = InputUtils.promptEnum<Priority>(
+          'Priority (${PriorityExtension.allowedValuesString})',
+          Priority.values,
+          isRequired: true,
+          currentValue: existingGoal.priority.name);
+      statusStr = InputUtils.promptEnum<GoalStatus>(
+          'Status (${GoalStatusExtension.allowedValuesString})',
+          GoalStatus.values,
+          currentValue: existingGoal.currentStatus?.name);
       kpis = InputUtils.prompt('KPIs', currentValue: existingGoal.kpis);
-      resources = InputUtils.prompt('Resources Required', currentValue: existingGoal.resourcesRequired);
-      motivation = InputUtils.prompt('Motivation', currentValue: existingGoal.motivation);
-      firstStep = InputUtils.prompt('First Step (Task Title)', currentValue: existingGoal.firstStep);
-      challenges = InputUtils.prompt('Potential Challenges (Obstacle Titles)', currentValue: existingGoal.potentialChallenges);
-      support = InputUtils.prompt('Support Contacts', currentValue: existingGoal.supportContacts);
-       print('--------------------------\n');
+      resources = InputUtils.prompt('Resources Required',
+          currentValue: existingGoal.resourcesRequired);
+      motivation = InputUtils.prompt('Motivation',
+          currentValue: existingGoal.motivation);
+      firstStep = InputUtils.prompt('First Step (Task Title)',
+          currentValue: existingGoal.firstStep);
+      challenges = InputUtils.prompt('Potential Challenges (Obstacle Titles)',
+          currentValue: existingGoal.potentialChallenges);
+      support = InputUtils.prompt('Support Contacts',
+          currentValue: existingGoal.supportContacts);
+      print('--------------------------\n');
     }
 
     // --- Apply Non-Interactive Args & Validate ---
     title ??= existingGoal.goalDescription;
     targetDate ??= existingGoal.targetCompletionDate;
     priorityStr ??= existingGoal.priority.name;
-    statusStr = argResults?.wasParsed('clear-status') ?? false ? null : (statusStr ?? existingGoal.currentStatus?.name);
-    kpis = argResults?.wasParsed('clear-kpis') ?? false ? null : (kpis ?? existingGoal.kpis);
-    resources = argResults?.wasParsed('clear-resources') ?? false ? null : (resources ?? existingGoal.resourcesRequired);
-    motivation = argResults?.wasParsed('clear-motivation') ?? false ? null : (motivation ?? existingGoal.motivation);
-    firstStep = argResults?.wasParsed('clear-first-step') ?? false ? null : (firstStep ?? existingGoal.firstStep);
-    challenges = argResults?.wasParsed('clear-challenges') ?? false ? null : (challenges ?? existingGoal.potentialChallenges);
-    support = argResults?.wasParsed('clear-support') ?? false ? null : (support ?? existingGoal.supportContacts);
-
+    statusStr = argResults?.wasParsed('clear-status') ?? false
+        ? null
+        : (statusStr ?? existingGoal.currentStatus?.name);
+    kpis = argResults?.wasParsed('clear-kpis') ?? false
+        ? null
+        : (kpis ?? existingGoal.kpis);
+    resources = argResults?.wasParsed('clear-resources') ?? false
+        ? null
+        : (resources ?? existingGoal.resourcesRequired);
+    motivation = argResults?.wasParsed('clear-motivation') ?? false
+        ? null
+        : (motivation ?? existingGoal.motivation);
+    firstStep = argResults?.wasParsed('clear-first-step') ?? false
+        ? null
+        : (firstStep ?? existingGoal.firstStep);
+    challenges = argResults?.wasParsed('clear-challenges') ?? false
+        ? null
+        : (challenges ?? existingGoal.potentialChallenges);
+    support = argResults?.wasParsed('clear-support') ?? false
+        ? null
+        : (support ?? existingGoal.supportContacts);
 
     // Re-validate
-     if (title.isEmpty) {
-        throw UsageException('Goal title cannot be empty.', usage);
+    if (title.isEmpty) {
+      throw UsageException('Goal title cannot be empty.', usage);
     }
-     if (!InputUtils.isValidDate(targetDate)) {
-       throw UsageException('Invalid target date format: "$targetDate". Use YYYY-MM-DD.', usage);
-     }
+    if (!InputUtils.isValidDate(targetDate)) {
+      throw UsageException(
+          'Invalid target date format: "$targetDate". Use YYYY-MM-DD.', usage);
+    }
     final priority = PriorityExtension.tryParse(priorityStr);
     if (priority == null) {
-       throw UsageException('Invalid priority value: "$priorityStr". Allowed: ${PriorityExtension.allowedValuesString}', usage);
+      throw UsageException(
+          'Invalid priority value: "$priorityStr". Allowed: ${PriorityExtension.allowedValuesString}',
+          usage);
     }
     final status = GoalStatusExtension.tryParse(statusStr);
     if (statusStr != null && statusStr.isNotEmpty && status == null) {
-       throw UsageException('Invalid status value: "$statusStr". Allowed: ${GoalStatusExtension.allowedValuesString}', usage);
+      throw UsageException(
+          'Invalid status value: "$statusStr". Allowed: ${GoalStatusExtension.allowedValuesString}',
+          usage);
     }
 
     // --- Create Updated Goal Object ---
@@ -148,7 +220,8 @@ class UpdateGoalCommand extends Command<void> {
         print('✅ Goal with ID "$id" updated successfully.');
       }
     } catch (e) {
-      print('❌ Error updating goal with ID "$id" in Excel file "${_excelService.filePath}": $e');
+      print(
+          '❌ Error updating goal with ID "$id" in Excel file "${_excelService.filePath}": $e');
     }
   }
 }
