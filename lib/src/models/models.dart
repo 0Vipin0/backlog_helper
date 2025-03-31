@@ -31,10 +31,10 @@ abstract class ExcelStorable {
   // These MUST be called using ExcelStorable._getString() etc. from subclasses
 
   // Helper to safely get string value from Excel Data
-  static String? _getString(Data? data) => data?.value?.toString().trim();
+  static String? getString(Data? data) => data?.value?.toString().trim();
 
   // Helper to safely get DateTime from Excel Data (assuming ISO8601 string)
-  static DateTime? _getDateTime(Data? data) {
+  static DateTime? getDateTime(Data? data) {
     if (data == null || data.value == null) return null;
 
     try {
@@ -59,20 +59,21 @@ abstract class ExcelStorable {
   }
 
   // Helper to format DateTime for Excel (ISO8601 string)
-  static TextCellValue? _formatDateTime(DateTime? dt) =>
+  static TextCellValue? formatDateTime(DateTime? dt) =>
       dt == null ? null : TextCellValue(dt.toIso8601String());
 
   // Helper to format Enum for Excel
-  static TextCellValue? _formatEnum<T extends Enum>(T? enumValue) =>
+  static TextCellValue? formatEnum<T extends Enum>(T? enumValue) =>
       enumValue == null ? null : TextCellValue(enumValue.name);
 
   // Helper to format String for Excel
-  static TextCellValue? _formatString(String? value) =>
+  static TextCellValue? formatString(String? value) =>
       (value == null || value.isEmpty) ? null : TextCellValue(value);
 
   // Helper to create TextCellValue (internal use or if needed directly)
-  static TextCellValue _s(String value) => TextCellValue(value);
-  static TextCellValue? _sN(String? value) => _formatString(value);
+  static TextCellValue s(String value) => TextCellValue(value);
+
+  static TextCellValue? sN(String? value) => formatString(value);
 
   /// Extracts the primitive value from a CellValue object for methods like updateCell.
   static dynamic extractValue(CellValue? cellValue) {
@@ -81,7 +82,7 @@ abstract class ExcelStorable {
     }
     // Check the specific type of CellValue and return its underlying value
     if (cellValue is TextCellValue) {
-      return cellValue.value;
+      return cellValue.toString();
     } else if (cellValue is IntCellValue) {
       return cellValue.value;
     } else if (cellValue is DoubleCellValue) {
@@ -103,17 +104,16 @@ abstract class ExcelStorable {
   }
 }
 
-
 class BacklogTask extends ExcelStorable {
-  String taskTitle;         // Mandatory
+  String taskTitle; // Mandatory
   String? description;
-  Priority priority;          // Mandatory
+  Priority priority; // Mandatory
   String? estimatedEffort;
   TaskStatus? status;
-  String? dueDate;           // Store as YYYY-MM-DD String
+  String? dueDate; // Store as YYYY-MM-DD String
   String? tagsCategories;
-  String? dependencies;      // Comma-separated Task Titles
-  String? reasoning;         // Related Goal/Plan Title
+  String? dependencies; // Comma-separated Task Titles
+  String? reasoning; // Related Goal/Plan Title
   String? resolution;
 
   BacklogTask({
@@ -140,74 +140,78 @@ class BacklogTask extends ExcelStorable {
 
   @override
   List<CellValue?> toRowData() => [
-    ExcelStorable._s(id),             // Use qualified static helper
-    ExcelStorable._s(taskTitle),
-    ExcelStorable._sN(description),
-    ExcelStorable._s(priority.name),
-    ExcelStorable._sN(estimatedEffort),
-    ExcelStorable._formatEnum(status),
-    ExcelStorable._sN(dueDate),
-    ExcelStorable._sN(tagsCategories),
-    ExcelStorable._sN(dependencies),
-    ExcelStorable._sN(reasoning),
-    ExcelStorable._sN(resolution),
-    ExcelStorable._formatDateTime(createdAt),
-    ExcelStorable._formatDateTime(updatedAt),
-  ];
+        ExcelStorable.s(id), // Use qualified static helper
+        ExcelStorable.s(taskTitle),
+        ExcelStorable.sN(description),
+        ExcelStorable.s(priority.name),
+        ExcelStorable.sN(estimatedEffort),
+        ExcelStorable.formatEnum(status),
+        ExcelStorable.sN(dueDate),
+        ExcelStorable.sN(tagsCategories),
+        ExcelStorable.sN(dependencies),
+        ExcelStorable.sN(reasoning),
+        ExcelStorable.sN(resolution),
+        ExcelStorable.formatDateTime(createdAt),
+        ExcelStorable.formatDateTime(updatedAt),
+      ];
 
   factory BacklogTask.fromRow(List<Data?> rowData) {
     if (rowData.length < ExcelConstants.headersTasks.length) {
-      throw FormatException("Invalid row data length for BacklogTask. Expected ${ExcelConstants.headersTasks.length}, got ${rowData.length}");
+      throw FormatException(
+          "Invalid row data length for BacklogTask. Expected ${ExcelConstants.headersTasks.length}, got ${rowData.length}");
     }
     return BacklogTask(
       // --- CORRECTION: Qualify static calls with ExcelStorable. ---
-      id: ExcelStorable._getString(rowData[0]) ?? (throw FormatException("Missing ID in Task row")),
-      taskTitle: ExcelStorable._getString(rowData[1]) ?? (throw FormatException("Missing Task Title in row")),
-      description: ExcelStorable._getString(rowData[2]),
-      priority: PriorityExtension.tryParse(ExcelStorable._getString(rowData[3])) ?? (throw FormatException("Invalid or missing Priority in Task row")),
-      estimatedEffort: ExcelStorable._getString(rowData[4]),
-      status: TaskStatusExtension.tryParse(ExcelStorable._getString(rowData[5])),
-      dueDate: ExcelStorable._getString(rowData[6]),
-      tagsCategories: ExcelStorable._getString(rowData[7]),
-      dependencies: ExcelStorable._getString(rowData[8]),
-      reasoning: ExcelStorable._getString(rowData[9]),
-      resolution: ExcelStorable._getString(rowData[10]),
-      createdAt: ExcelStorable._getDateTime(rowData[11]) ?? DateTime.now(),
-      updatedAt: ExcelStorable._getDateTime(rowData[12]) ?? DateTime.now(),
+      id: ExcelStorable.getString(rowData[0]) ??
+          (throw FormatException("Missing ID in Task row")),
+      taskTitle: ExcelStorable.getString(rowData[1]) ??
+          (throw FormatException("Missing Task Title in row")),
+      description: ExcelStorable.getString(rowData[2]),
+      priority: PriorityExtension.tryParse(
+              ExcelStorable.getString(rowData[3])) ??
+          (throw FormatException("Invalid or missing Priority in Task row")),
+      estimatedEffort: ExcelStorable.getString(rowData[4]),
+      status: TaskStatusExtension.tryParse(ExcelStorable.getString(rowData[5])),
+      dueDate: ExcelStorable.getString(rowData[6]),
+      tagsCategories: ExcelStorable.getString(rowData[7]),
+      dependencies: ExcelStorable.getString(rowData[8]),
+      reasoning: ExcelStorable.getString(rowData[9]),
+      resolution: ExcelStorable.getString(rowData[10]),
+      createdAt: ExcelStorable.getDateTime(rowData[11]) ?? DateTime.now(),
+      updatedAt: ExcelStorable.getDateTime(rowData[12]) ?? DateTime.now(),
       // --- End CORRECTION ---
     );
   }
 
   List<String> toListForDisplay() => [
-    id,
-    taskTitle,
-    description ?? '',
-    priority.name,
-    estimatedEffort ?? '',
-    status?.name ?? '',
-    dueDate ?? '',
-    tagsCategories ?? '',
-    dependencies ?? '',
-    reasoning ?? '',
-    resolution ?? '',
-    DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
-    DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
-  ];
+        id,
+        taskTitle,
+        description ?? '',
+        priority.name,
+        estimatedEffort ?? '',
+        status?.name ?? '',
+        dueDate ?? '',
+        tagsCategories ?? '',
+        dependencies ?? '',
+        reasoning ?? '',
+        resolution ?? '',
+        DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
+        DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
+      ];
 
   static List<String> get displayHeaders => ExcelConstants.headersTasks;
 }
 
-
 class FutureGoal extends ExcelStorable {
-  String goalDescription;      // Mandatory (mapped to 'Goal Title' header)
+  String goalDescription; // Mandatory (mapped to 'Goal Title' header)
   String targetCompletionDate; // Mandatory (YYYY-MM-DD)
-  Priority priority;           // Mandatory
+  Priority priority; // Mandatory
   String? kpis;
   String? resourcesRequired;
   GoalStatus? currentStatus;
   String? motivation;
-  String? firstStep;            // Related Task Title
-  String? potentialChallenges;  // Related Obstacle Titles (comma-sep)
+  String? firstStep; // Related Task Title
+  String? potentialChallenges; // Related Obstacle Titles (comma-sep)
   String? supportContacts;
 
   FutureGoal({
@@ -234,72 +238,80 @@ class FutureGoal extends ExcelStorable {
 
   @override
   List<CellValue?> toRowData() => [
-    ExcelStorable._s(id),
-    ExcelStorable._s(goalDescription),
-    ExcelStorable._s(targetCompletionDate),
-    ExcelStorable._s(priority.name),
-    ExcelStorable._sN(kpis),
-    ExcelStorable._sN(resourcesRequired),
-    ExcelStorable._formatEnum(currentStatus),
-    ExcelStorable._sN(motivation),
-    ExcelStorable._sN(firstStep),
-    ExcelStorable._sN(potentialChallenges),
-    ExcelStorable._sN(supportContacts),
-    ExcelStorable._formatDateTime(createdAt),
-    ExcelStorable._formatDateTime(updatedAt),
-  ];
+        ExcelStorable.s(id),
+        ExcelStorable.s(goalDescription),
+        ExcelStorable.s(targetCompletionDate),
+        ExcelStorable.s(priority.name),
+        ExcelStorable.sN(kpis),
+        ExcelStorable.sN(resourcesRequired),
+        ExcelStorable.formatEnum(currentStatus),
+        ExcelStorable.sN(motivation),
+        ExcelStorable.sN(firstStep),
+        ExcelStorable.sN(potentialChallenges),
+        ExcelStorable.sN(supportContacts),
+        ExcelStorable.formatDateTime(createdAt),
+        ExcelStorable.formatDateTime(updatedAt),
+      ];
 
   factory FutureGoal.fromRow(List<Data?> rowData) {
     if (rowData.length < ExcelConstants.headersGoals.length) {
-      throw FormatException("Invalid row data length for FutureGoal. Expected ${ExcelConstants.headersGoals.length}, got ${rowData.length}");
+      throw FormatException(
+          "Invalid row data length for FutureGoal. Expected ${ExcelConstants.headersGoals.length}, got ${rowData.length}");
     }
     return FutureGoal(
       // --- CORRECTION: Qualify static calls ---
-      id: ExcelStorable._getString(rowData[0]) ?? (throw FormatException("Missing ID in Goal row")),
-      goalDescription: ExcelStorable._getString(rowData[1]) ?? (throw FormatException("Missing Goal Title in row")),
-      targetCompletionDate: ExcelStorable._getString(rowData[2]) ?? (throw FormatException("Missing Target Completion Date in Goal row")),
-      priority: PriorityExtension.tryParse(ExcelStorable._getString(rowData[3])) ?? (throw FormatException("Invalid or missing Priority in Goal row")),
-      kpis: ExcelStorable._getString(rowData[4]),
-      resourcesRequired: ExcelStorable._getString(rowData[5]),
-      currentStatus: GoalStatusExtension.tryParse(ExcelStorable._getString(rowData[6])),
-      motivation: ExcelStorable._getString(rowData[7]),
-      firstStep: ExcelStorable._getString(rowData[8]),
-      potentialChallenges: ExcelStorable._getString(rowData[9]),
-      supportContacts: ExcelStorable._getString(rowData[10]),
-      createdAt: ExcelStorable._getDateTime(rowData[11]) ?? DateTime.now(),
-      updatedAt: ExcelStorable._getDateTime(rowData[12]) ?? DateTime.now(),
+      id: ExcelStorable.getString(rowData[0]) ??
+          (throw FormatException("Missing ID in Goal row")),
+      goalDescription: ExcelStorable.getString(rowData[1]) ??
+          (throw FormatException("Missing Goal Title in row")),
+      targetCompletionDate: ExcelStorable.getString(rowData[2]) ??
+          (throw FormatException("Missing Target Completion Date in Goal row")),
+      priority: PriorityExtension.tryParse(
+              ExcelStorable.getString(rowData[3])) ??
+          (throw FormatException("Invalid or missing Priority in Goal row")),
+      kpis: ExcelStorable.getString(rowData[4]),
+      resourcesRequired: ExcelStorable.getString(rowData[5]),
+      currentStatus:
+          GoalStatusExtension.tryParse(ExcelStorable.getString(rowData[6])),
+      motivation: ExcelStorable.getString(rowData[7]),
+      firstStep: ExcelStorable.getString(rowData[8]),
+      potentialChallenges: ExcelStorable.getString(rowData[9]),
+      supportContacts: ExcelStorable.getString(rowData[10]),
+      createdAt: ExcelStorable.getDateTime(rowData[11]) ?? DateTime.now(),
+      updatedAt: ExcelStorable.getDateTime(rowData[12]) ?? DateTime.now(),
       // --- End CORRECTION ---
     );
   }
 
   List<String> toListForDisplay() => [
-    id,
-    goalDescription,
-    targetCompletionDate,
-    priority.name,
-    kpis ?? '',
-    resourcesRequired ?? '',
-    currentStatus?.name ?? '',
-    motivation ?? '',
-    firstStep ?? '',
-    potentialChallenges ?? '',
-    supportContacts ?? '',
-    DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
-    DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
-  ];
+        id,
+        goalDescription,
+        targetCompletionDate,
+        priority.name,
+        kpis ?? '',
+        resourcesRequired ?? '',
+        currentStatus?.name ?? '',
+        motivation ?? '',
+        firstStep ?? '',
+        potentialChallenges ?? '',
+        supportContacts ?? '',
+        DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
+        DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
+      ];
+
   static List<String> get displayHeaders => ExcelConstants.headersGoals;
 }
 
 class PlanningItem extends ExcelStorable {
   String planItemDescription; // Mandatory (mapped to 'Plan Title')
-  PlanType typeOfPlan;        // Mandatory
-  String? startDate;          // YYYY-MM-DD
-  String? endDate;            // YYYY-MM-DD
-  String? dependencies;       // Comma-separated Plan Titles
+  PlanType typeOfPlan; // Mandatory
+  String? startDate; // YYYY-MM-DD
+  String? endDate; // YYYY-MM-DD
+  String? dependencies; // Comma-separated Plan Titles
   String? progress;
-  String status;              // Mandatory (e.g., On Track, At Risk) - Kept as String
-  String? relatedGoal;        // Related Goal Title
-  String? keyMilestones;      // Related Task Titles (comma-sep)
+  String status; // Mandatory (e.g., On Track, At Risk) - Kept as String
+  String? relatedGoal; // Related Goal Title
+  String? keyMilestones; // Related Task Titles (comma-sep)
   String? allocatedResources;
 
   PlanningItem({
@@ -326,62 +338,70 @@ class PlanningItem extends ExcelStorable {
 
   @override
   List<CellValue?> toRowData() => [
-    ExcelStorable._s(id),
-    ExcelStorable._s(planItemDescription),
-    ExcelStorable._s(typeOfPlan.name),
-    ExcelStorable._sN(startDate),
-    ExcelStorable._sN(endDate),
-    ExcelStorable._sN(dependencies),
-    ExcelStorable._sN(progress),
-    ExcelStorable._s(status), // String status
-    ExcelStorable._sN(relatedGoal),
-    ExcelStorable._sN(keyMilestones),
-    ExcelStorable._sN(allocatedResources),
-    ExcelStorable._formatDateTime(createdAt),
-    ExcelStorable._formatDateTime(updatedAt),
-  ];
+        ExcelStorable.s(id),
+        ExcelStorable.s(planItemDescription),
+        ExcelStorable.s(typeOfPlan.name),
+        ExcelStorable.sN(startDate),
+        ExcelStorable.sN(endDate),
+        ExcelStorable.sN(dependencies),
+        ExcelStorable.sN(progress),
+        ExcelStorable.s(status), // String status
+        ExcelStorable.sN(relatedGoal),
+        ExcelStorable.sN(keyMilestones),
+        ExcelStorable.sN(allocatedResources),
+        ExcelStorable.formatDateTime(createdAt),
+        ExcelStorable.formatDateTime(updatedAt),
+      ];
 
   factory PlanningItem.fromRow(List<Data?> rowData) {
     if (rowData.length < ExcelConstants.headersPlans.length) {
-      throw FormatException("Invalid row data length for PlanningItem. Expected ${ExcelConstants.headersPlans.length}, got ${rowData.length}");
+      throw FormatException(
+          "Invalid row data length for PlanningItem. Expected ${ExcelConstants.headersPlans.length}, got ${rowData.length}");
     }
     return PlanningItem(
       // --- CORRECTION: Qualify static calls ---
-      id: ExcelStorable._getString(rowData[0]) ?? (throw FormatException("Missing ID in Plan row")),
-      planItemDescription: ExcelStorable._getString(rowData[1]) ?? (throw FormatException("Missing Plan Title in row")),
-      typeOfPlan: PlanTypeExtension.tryParse(ExcelStorable._getString(rowData[2])) ?? (throw FormatException("Invalid or missing Type of Plan in Plan row")),
-      startDate: ExcelStorable._getString(rowData[3]),
-      endDate: ExcelStorable._getString(rowData[4]),
-      dependencies: ExcelStorable._getString(rowData[5]),
-      progress: ExcelStorable._getString(rowData[6]),
-      status: ExcelStorable._getString(rowData[7]) ?? (throw FormatException("Missing Status in Plan row")), // String status
-      relatedGoal: ExcelStorable._getString(rowData[8]),
-      keyMilestones: ExcelStorable._getString(rowData[9]),
-      allocatedResources: ExcelStorable._getString(rowData[10]),
-      createdAt: ExcelStorable._getDateTime(rowData[11]) ?? DateTime.now(),
-      updatedAt: ExcelStorable._getDateTime(rowData[12]) ?? DateTime.now(),
+      id: ExcelStorable.getString(rowData[0]) ??
+          (throw FormatException("Missing ID in Plan row")),
+      planItemDescription: ExcelStorable.getString(rowData[1]) ??
+          (throw FormatException("Missing Plan Title in row")),
+      typeOfPlan:
+          PlanTypeExtension.tryParse(ExcelStorable.getString(rowData[2])) ??
+              (throw FormatException(
+                  "Invalid or missing Type of Plan in Plan row")),
+      startDate: ExcelStorable.getString(rowData[3]),
+      endDate: ExcelStorable.getString(rowData[4]),
+      dependencies: ExcelStorable.getString(rowData[5]),
+      progress: ExcelStorable.getString(rowData[6]),
+      status: ExcelStorable.getString(rowData[7]) ??
+          (throw FormatException("Missing Status in Plan row")),
+      // String status
+      relatedGoal: ExcelStorable.getString(rowData[8]),
+      keyMilestones: ExcelStorable.getString(rowData[9]),
+      allocatedResources: ExcelStorable.getString(rowData[10]),
+      createdAt: ExcelStorable.getDateTime(rowData[11]) ?? DateTime.now(),
+      updatedAt: ExcelStorable.getDateTime(rowData[12]) ?? DateTime.now(),
       // --- End CORRECTION ---
     );
   }
 
   List<String> toListForDisplay() => [
-    id,
-    planItemDescription,
-    typeOfPlan.name,
-    startDate ?? '',
-    endDate ?? '',
-    dependencies ?? '',
-    progress ?? '',
-    status,
-    relatedGoal ?? '',
-    keyMilestones ?? '',
-    allocatedResources ?? '',
-    DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
-    DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
-  ];
+        id,
+        planItemDescription,
+        typeOfPlan.name,
+        startDate ?? '',
+        endDate ?? '',
+        dependencies ?? '',
+        progress ?? '',
+        status,
+        relatedGoal ?? '',
+        keyMilestones ?? '',
+        allocatedResources ?? '',
+        DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
+        DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
+      ];
+
   static List<String> get displayHeaders => ExcelConstants.headersPlans;
 }
-
 
 class Obstacle extends ExcelStorable {
   String obstacleDescription; // Mandatory (mapped to 'Obstacle Title')
@@ -390,10 +410,10 @@ class Obstacle extends ExcelStorable {
   String? mitigationStrategies;
   String? contingencyPlans;
   ObstacleCategory? category;
-  String? status;              // E.g., Open, Resolved - Kept as String
-  String? relatedItem;         // Related Goal/Task/Plan Title
+  String? status; // E.g., Open, Resolved - Kept as String
+  String? relatedItem; // Related Goal/Task/Plan Title
   String? assignedTo;
-  String? dateIdentified;      // YYYY-MM-DD
+  String? dateIdentified; // YYYY-MM-DD
 
   Obstacle({
     required String id,
@@ -419,57 +439,66 @@ class Obstacle extends ExcelStorable {
 
   @override
   List<CellValue?> toRowData() => [
-    ExcelStorable._s(id),
-    ExcelStorable._s(obstacleDescription),
-    ExcelStorable._formatEnum(likelihoodOfOccurrence),
-    ExcelStorable._formatEnum(potentialImpact),
-    ExcelStorable._sN(mitigationStrategies),
-    ExcelStorable._sN(contingencyPlans),
-    ExcelStorable._formatEnum(category),
-    ExcelStorable._sN(status), // String status
-    ExcelStorable._sN(relatedItem),
-    ExcelStorable._sN(assignedTo),
-    ExcelStorable._sN(dateIdentified),
-    ExcelStorable._formatDateTime(createdAt),
-    ExcelStorable._formatDateTime(updatedAt),
-  ];
+        ExcelStorable.s(id),
+        ExcelStorable.s(obstacleDescription),
+        ExcelStorable.formatEnum(likelihoodOfOccurrence),
+        ExcelStorable.formatEnum(potentialImpact),
+        ExcelStorable.sN(mitigationStrategies),
+        ExcelStorable.sN(contingencyPlans),
+        ExcelStorable.formatEnum(category),
+        ExcelStorable.sN(status), // String status
+        ExcelStorable.sN(relatedItem),
+        ExcelStorable.sN(assignedTo),
+        ExcelStorable.sN(dateIdentified),
+        ExcelStorable.formatDateTime(createdAt),
+        ExcelStorable.formatDateTime(updatedAt),
+      ];
 
   factory Obstacle.fromRow(List<Data?> rowData) {
     if (rowData.length < ExcelConstants.headersObstacles.length) {
-      throw FormatException("Invalid row data length for Obstacle. Expected ${ExcelConstants.headersObstacles.length}, got ${rowData.length}");
+      throw FormatException(
+          "Invalid row data length for Obstacle. Expected ${ExcelConstants.headersObstacles.length}, got ${rowData.length}");
     }
     return Obstacle(
       // --- CORRECTION: Qualify static calls ---
-      id: ExcelStorable._getString(rowData[0]) ?? (throw FormatException("Missing ID in Obstacle row")),
-      obstacleDescription: ExcelStorable._getString(rowData[1]) ?? (throw FormatException("Missing Obstacle Title in row")),
-      likelihoodOfOccurrence: LikelihoodExtension.tryParse(ExcelStorable._getString(rowData[2])),
-      potentialImpact: ImpactExtension.tryParse(ExcelStorable._getString(rowData[3])),
-      mitigationStrategies: ExcelStorable._getString(rowData[4]),
-      contingencyPlans: ExcelStorable._getString(rowData[5]),
-      category: ObstacleCategoryExtension.tryParse(ExcelStorable._getString(rowData[6])),
-      status: ExcelStorable._getString(rowData[7]), // String status
-      relatedItem: ExcelStorable._getString(rowData[8]),
-      assignedTo: ExcelStorable._getString(rowData[9]),
-      dateIdentified: ExcelStorable._getString(rowData[10]),
-      createdAt: ExcelStorable._getDateTime(rowData[11]) ?? DateTime.now(),
-      updatedAt: ExcelStorable._getDateTime(rowData[12]) ?? DateTime.now(),
+      id: ExcelStorable.getString(rowData[0]) ??
+          (throw FormatException("Missing ID in Obstacle row")),
+      obstacleDescription: ExcelStorable.getString(rowData[1]) ??
+          (throw FormatException("Missing Obstacle Title in row")),
+      likelihoodOfOccurrence:
+          LikelihoodExtension.tryParse(ExcelStorable.getString(rowData[2])),
+      potentialImpact:
+          ImpactExtension.tryParse(ExcelStorable.getString(rowData[3])),
+      mitigationStrategies: ExcelStorable.getString(rowData[4]),
+      contingencyPlans: ExcelStorable.getString(rowData[5]),
+      category: ObstacleCategoryExtension.tryParse(
+          ExcelStorable.getString(rowData[6])),
+      status: ExcelStorable.getString(rowData[7]),
+      // String status
+      relatedItem: ExcelStorable.getString(rowData[8]),
+      assignedTo: ExcelStorable.getString(rowData[9]),
+      dateIdentified: ExcelStorable.getString(rowData[10]),
+      createdAt: ExcelStorable.getDateTime(rowData[11]) ?? DateTime.now(),
+      updatedAt: ExcelStorable.getDateTime(rowData[12]) ?? DateTime.now(),
       // --- End CORRECTION ---
     );
   }
+
   List<String> toListForDisplay() => [
-    id,
-    obstacleDescription,
-    likelihoodOfOccurrence?.name ?? '',
-    potentialImpact?.name ?? '',
-    mitigationStrategies ?? '',
-    contingencyPlans ?? '',
-    category?.name ?? '',
-    status ?? '', // Display string status
-    relatedItem ?? '',
-    assignedTo ?? '',
-    dateIdentified ?? '',
-    DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
-    DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
-  ];
+        id,
+        obstacleDescription,
+        likelihoodOfOccurrence?.name ?? '',
+        potentialImpact?.name ?? '',
+        mitigationStrategies ?? '',
+        contingencyPlans ?? '',
+        category?.name ?? '',
+        status ?? '', // Display string status
+        relatedItem ?? '',
+        assignedTo ?? '',
+        dateIdentified ?? '',
+        DateFormat('yyyy-MM-dd HH:mm').format(createdAt),
+        DateFormat('yyyy-MM-dd HH:mm').format(updatedAt),
+      ];
+
   static List<String> get displayHeaders => ExcelConstants.headersObstacles;
 }
