@@ -1,8 +1,5 @@
-// lib/src/models/enums.dart
-
 import '../utils/enum_helpers.dart';
 
-// --- Enums --- (Same as provided)
 enum Priority { high, medium, low }
 enum TaskStatus { toDo, inProgress, blocked, done }
 enum GoalStatus { notStarted, planning, inProgress, achieved }
@@ -10,8 +7,6 @@ enum PlanType { strategic, tactical, operational }
 enum Likelihood { high, medium, low }
 enum Impact { high, medium, low }
 enum ObstacleCategory { technical, resource, market, behavioral, communication, financial }
-
-// --- Enum Extensions --- (With 'names' getter added)
 
 extension PriorityExtension on Priority {
   String get description {

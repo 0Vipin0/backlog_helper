@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
 
-// Import commands from lib/src
 import 'package:backlog_manager_excel/src/commands/add/add_command.dart';
 import 'package:backlog_manager_excel/src/commands/list/list_command.dart';
 import 'package:backlog_manager_excel/src/commands/update/update_command.dart';
@@ -12,7 +11,7 @@ import 'package:backlog_manager_excel/src/constants/excel_constants.dart';
 
 Future<void> main(List<String> arguments) async {
   final runner = CommandRunner<void>(
-    'backlog_manager_excel', // Your executable name
+    'backlog_helper', // Your executable name
     'CLI tool to manage project items using an Excel file.',
   )
   // Add global option for file path

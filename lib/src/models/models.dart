@@ -1,5 +1,3 @@
-// lib/src/models/models.dart
-
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart'; // For date formatting
 import 'enums.dart';
@@ -93,7 +91,7 @@ abstract class ExcelStorable {
     } else if (cellValue is DateTimeCellValue) {
       // updateCell might prefer String or DateTime directly.
       // Sticking to ISO string might be safer if DateTime object causes issues.
-      return cellValue.toString();;
+      return cellValue.toString();
     } else if (cellValue is FormulaCellValue) {
       // Decide how to handle formulas - maybe return the formula string?
       return cellValue.formula; // Returns the formula string e.g., "SUM(A1:A2)"

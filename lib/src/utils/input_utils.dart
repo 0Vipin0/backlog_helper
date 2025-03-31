@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:intl/intl.dart'; // For date display/validation
 import 'enum_helpers.dart';
-// Import your enums
 
 class InputUtils {
   /// Prompts the user for input.
