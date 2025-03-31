@@ -1,0 +1,210 @@
+name: Build & Release Executables
+
+# Trigger the workflow on push events, but only for version tags (e.g., v1.0.0, v2.1.3)
+on:
+  push:
+    tags:
+      - 'v*.*.*' # Matches tags like v1.0.0, v2.3.4, v1.0.0-beta.1 etc.
+
+# Define environment variables accessible in jobs
+env:
+  # Replace with the actual path to your main Dart executable script
+  EXECUTABLE_SCRIPT_PATH: bin/backlog_helper.dart
+  # Replace with the base name you want for your executables
+  EXECUTABLE_NAME: backlog_manager
+
+permissions:
+  contents: write # Needed to create releases and upload assets
+
+jobs:
+  # -------- Quality Check Job --------
+  check:
+    name: Analyze & Test
+    runs-on: ubuntu-latest # Use Linux for faster checks
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        # Optional: Specify Dart version if needed
+        # with:
+        #   sdk: '3.x'
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project sources
+        run: dart analyze --fatal-infos
+
+      - name: Run tests
+        run: dart test
+
+  # -------- Build Job (Matrix Strategy) --------
+  build:
+    name: Build for ${{ matrix.os }}
+    needs: check # Only run build if checks pass
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # Define the operating systems to build on
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        # Optional: Define Dart versions if you need specific compatibility
+        # dart: ['stable']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        # Optional: Specify Dart version
+        # with:
+        #   sdk: ${{ matrix.dart }}
+
+      - name: Install dependencies
+        run: dart pub get
+
+      # --- Build Executable ---
+      - name: Compile executable (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: dart compile exe ${{ env.EXECUTABLE_SCRIPT_PATH }} -o build/${{ env.EXECUTABLE_NAME }}
+
+      - name: Compile executable (Windows)
+        if: runner.os == 'Windows'
+        run: dart compile exe ${{ env.EXECUTABLE_SCRIPT_PATH }} -o build/${{ env.EXECUTABLE_NAME }}.exe
+
+      # --- Prepare Artifact Name ---
+      - name: Determine OS identifier
+        id: os_id
+        shell: bash
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            echo "os_name=linux" >> $GITHUB_OUTPUT
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            echo "os_name=macos" >> $GITHUB_OUTPUT
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            echo "os_name=windows" >> $GITHUB_OUTPUT
+          fi
+
+      # --- Archive Artifacts (Zip for Linux/macOS, Keep exe for Windows or Zip) ---
+      # Zip Linux executable
+      - name: Archive Linux build
+        if: runner.os == 'Linux'
+        run: |
+          cd build
+          zip ../${{ env.EXECUTABLE_NAME }}-${{ steps.os_id.outputs.os_name }}.zip ${{ env.EXECUTABLE_NAME }}
+          cd ..
+
+      # Zip macOS executable
+      - name: Archive macOS build
+        if: runner.os == 'macOS'
+        run: |
+          cd build
+          zip ../${{ env.EXECUTABLE_NAME }}-${{ steps.os_id.outputs.os_name }}.zip ${{ env.EXECUTABLE_NAME }}
+          cd ..
+
+      # Option 1: Zip Windows executable
+      - name: Archive Windows build (Zip)
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path build/${{ env.EXECUTABLE_NAME }}.exe -DestinationPath ${{ env.EXECUTABLE_NAME }}-${{ steps.os_id.outputs.os_name }}.zip
+      # # Option 2: Prepare Windows exe directly (uncomment if preferred)
+      # - name: Prepare Windows build (Direct Exe)
+      #   if: runner.os == 'Windows'
+      #   run: mv build/${{ env.EXECUTABLE_NAME }}.exe ./${{ env.EXECUTABLE_NAME }}-${{ steps.os_id.outputs.os_name }}.exe
+
+      # --- Upload Artifacts (to be downloaded by release job) ---
+      - name: Upload artifact for ${{ matrix.os }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXECUTABLE_NAME }}-${{ steps.os_id.outputs.os_name }} # Unique name per OS
+          # Adjust path based on whether you zipped Windows or not
+          path: ${{ env.EXECUTABLE_NAME }}-${{ steps.os_id.outputs.os_name }}.* # Matches .zip or .exe
+
+  # -------- Release Job --------
+  release:
+    name: Create GitHub Release
+    needs: build # Run after all builds complete successfully
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code # Needed for tag info? Often not strictly required here
+        uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        # No 'path' specified, downloads all artifacts into separate directories named after the artifact name
+
+      # Create a directory to collect all release assets
+      - name: Create release assets directory
+        run: mkdir release-assets
+
+      # Move/Copy downloaded assets into the collection directory
+      # The artifact name was set to EXECUTABLE_NAME-OS_NAME in the build job
+      # The download-artifact action puts them in directories named like that
+      - name: Collect Linux asset
+        run: mv ${{ env.EXECUTABLE_NAME }}-linux/${{ env.EXECUTABLE_NAME }}-linux.zip release-assets/
+      - name: Collect macOS asset
+        run: mv ${{ env.EXECUTABLE_NAME }}-macos/${{ env.EXECUTABLE_NAME }}-macos.zip release-assets/
+      - name: Collect Windows asset
+        run: mv ${{ env.EXECUTABLE_NAME }}-windows/${{ env.EXECUTABLE_NAME }}-windows.zip release-assets/ # Adjust if using direct .exe
+
+      - name: List collected assets # For debugging
+        run: ls -R release-assets
+
+      # Create the GitHub Release
+      # Uses the tag name for the release name and tag_name
+      # Creates a draft release initially
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }} # Gets the tag name like v1.0.0
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            Automated release of version ${{ github.ref_name }}.
+
+            ## Changes
+            *(You can add release notes here manually later, or generate them)*
+
+            ## Assets
+            Compiled executables for Linux, macOS, and Windows.
+          # draft: true # Make it a draft first, you can publish manually
+          # prerelease: ${{ contains(github.ref_name, '-') }} # Mark as pre-release if tag contains '-' (e.g., v1.0.0-beta)
+
+      # Upload each asset to the created release
+      - name: Upload Release Asset (Linux)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-assets/${{ env.EXECUTABLE_NAME }}-linux.zip
+          asset_name: ${{ env.EXECUTABLE_NAME }}-linux-x64.zip # More descriptive name
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (macOS)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-assets/${{ env.EXECUTABLE_NAME }}-macos.zip
+          asset_name: ${{ env.EXECUTABLE_NAME }}-macos-x64.zip # More descriptive name
+          asset_content_type: application/zip
+
+      - name: Upload Release Asset (Windows)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release-assets/${{ env.EXECUTABLE_NAME }}-windows.zip # Adjust if using direct .exe
+          asset_name: ${{ env.EXECUTABLE_NAME }}-windows-x64.zip # Adjust if using direct .exe
+          asset_content_type: application/zip # Adjust if using direct .exe (application/vnd.microsoft.portable-executable or application/octet-stream)
