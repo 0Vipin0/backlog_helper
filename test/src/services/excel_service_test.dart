@@ -14,8 +14,9 @@ String getTempDir() =>
 
 Future<Excel> decodeTestFile(String path) async {
   final file = File(path);
-  if (!await file.exists())
+  if (!await file.exists()) {
     throw Exception("Test file $path not found for decoding");
+  }
   final bytes = await file.readAsBytes();
   return Excel.decodeBytes(bytes);
 }
