@@ -1,5 +1,5 @@
-import 'package:backlog_manager_excel/src/models/enums.dart';
-import 'package:backlog_manager_excel/src/utils/enum_helpers.dart';
+import 'package:backlog_helper/src/models/enums.dart';
+import 'package:backlog_helper/src/utils/enum_helpers.dart';
 import 'package:test/test.dart';
 
 void main() {

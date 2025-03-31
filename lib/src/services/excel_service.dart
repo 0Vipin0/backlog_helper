@@ -259,7 +259,6 @@ class ExcelService {
 
     // Get the new row data
     final newRowData = item.toRowData();
-    final headers = item.headers;
 
     // Update the cells in the found row
     for (int colIndex = 0; colIndex < newRowData.length; colIndex++) {
@@ -267,7 +266,7 @@ class ExcelService {
           newRowData[colIndex]; // Get the CellValue? directly
 
       sheet.updateCell(
-        CellIndex.indexByColumnRow(columnIndex: colIndex, rowIndex: rowIndex!),
+        CellIndex.indexByColumnRow(columnIndex: colIndex, rowIndex: rowIndex),
         // Use rowIndex! (safe after check)
         valueToUpdate, // Pass the CellValue? directly (null means clear)
         // cellStyle: optionalCellStyle,

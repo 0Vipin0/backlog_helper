@@ -1,6 +1,6 @@
-import 'package:backlog_manager_excel/src/constants/excel_constants.dart';
-import 'package:backlog_manager_excel/src/models/enums.dart';
-import 'package:backlog_manager_excel/src/models/models.dart';
+import 'package:backlog_helper/src/constants/excel_constants.dart';
+import 'package:backlog_helper/src/models/enums.dart';
+import 'package:backlog_helper/src/models/models.dart';
 import 'package:test/test.dart';
 import 'package:excel/excel.dart';
 import 'package:intl/intl.dart';

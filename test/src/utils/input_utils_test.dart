@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:backlog_manager_excel/src/models/enums.dart';
-import 'package:backlog_manager_excel/src/utils/input_utils.dart';
+import 'package:backlog_helper/src/models/enums.dart';
+import 'package:backlog_helper/src/utils/input_utils.dart';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 
